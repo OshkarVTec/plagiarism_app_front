@@ -1,19 +1,10 @@
-import { useRef,useState } from "react";
+import { useState } from "react";
+import axios from "axios";
 import { FileUploadPreview } from "@/components/fileUploadPreview";
 import { FileUploadButton } from "@/components/FileUploadButton";
 
 export default function Index() {
   const [files, setFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-const handleAddFiles = (fileList: FileList) => {
-  const newFiles = Array.from(fileList);
-  setFiles(prev => [...prev, ...newFiles]);
-};
-
-const handleRemoveFile = (filename: string) => {
-  setFiles(prev => prev.filter(file => file.name !== filename));
-};
 
   return (
     <div className="flex flex-col items-center justify-center h-[60vh]">
@@ -28,8 +19,24 @@ const handleRemoveFile = (filename: string) => {
             const uploadedFiles = Array.from(newFiles);
             setFiles(prev => [...prev, ...uploadedFiles]);
             }}
-            onAnalyze={(files) => {
+            onAnalyze={async(files) => {
             console.log("Archivos a analizar:", files);
+             try {
+              const formData = new FormData();
+              files.forEach(file => formData.append("files", file));
+
+              const response = await axios.post(
+                "http://localhost:8000/plagiarism/",
+                formData
+              );
+
+              console.log("Respuesta API:", response.data);
+              // Aquí guarda response.data en estado para mostrar resultados
+
+            } catch (error) {
+              console.error("Error al llamar API:", error);
+              // Opcional: manejar error en UI
+            }
             }}
         />
         ) : (

@@ -17,15 +17,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </NavigationMenuLink>
                <div className="w-0.5 h-8 bg-black" />
             <NavigationMenuLink asChild
-            data-active={location.pathname === "/resultados"}>
-              <Link to="/resultados">
-                Resultados
+            data-active={location.pathname === "/Results"}>
+              <Link to="/Results">
+                Results
               </Link>
             </NavigationMenuLink>
           </NavigationMenuList>
         </NavigationMenu>
       </header>
-      <main className="p-6">{children}</main>
+      <main className="p-2">{children}</main>
     </div>
   );
 }

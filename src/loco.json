@@ -1,0 +1,33 @@
+{
+  "0": {
+    "members": {
+      "uploaded_files\\835216.py": [
+        [
+          13,
+          92
+        ]
+      ],
+      "uploaded_files\\83521e.py": [
+        [
+          13,
+          94
+        ]
+      ]
+    },
+    "pairs": [
+      {
+        "file1": "uploaded_files\\835216.py",
+        "lines1": [
+          13,
+          92
+        ],
+        "file2": "uploaded_files\\83521e.py",
+        "lines2": [
+          13,
+          94
+        ],
+        "clone_type": 3
+      }
+    ]
+  }
+}
