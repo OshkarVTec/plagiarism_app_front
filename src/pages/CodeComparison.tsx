@@ -1,69 +1,73 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAnalysisStore } from "@/store/useAnalysisStore";
+import type { AnalysisState, ClonePair } from "@/types/analysis";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { CodeBlock } from "@/components/CodeBlock";
 
-type ClonePair = {
-  file1: string;
-  lines1: number[];
-  file2: string;
-  lines2: number[];
-  clone_type: number | "No Significant Similarity";
-};
-
-type Cluster = {
-  members: Record<string, number[][]>;
-  pairs: ClonePair[];
-};
-
-type AnalysisData = Record<string, Cluster>;
-
-import mockData from "@/loco.json"; // reemplaza esto con tu estado/contexto/fetch
-
-export function CodeComparison() {
+export default function CodeComparisonPage() {
+  const navigate = useNavigate();
   const { groupId } = useParams<{ groupId: string }>();
-  const [pairData, setPairData] = useState<ClonePair[]>([]);
+  const resultData = useAnalysisStore((state: AnalysisState) => state.resultData);
+  const fileContents = useAnalysisStore((state: AnalysisState) => state.fileContents);
 
+  const numericGroupId = groupId ? String(Number(groupId) - 1) : null;
+
+  const [groupPairs, setGroupPairs] = useState<ClonePair[]>([]);
+  const [members, setMembers] = useState<Record<string, [number, number][]>>({});
+  
+  function normalizePath(path: string): string {
+  return path.split("\\").join("/");}
+  
   useEffect(() => {
-  if (!groupId) return;
+    if (!numericGroupId || !resultData) return;
 
-  const cluster = (mockData as AnalysisData)[groupId];
+    const cluster = resultData[numericGroupId];
+    console.log("Cluster data for group:", cluster);
+    if (!cluster || !cluster.file_pairs) return;
 
-  if (cluster) {
-    const filtered = cluster.pairs.filter(
-      (p) => p.clone_type !== "No Significant Similarity"
-    );
-    setPairData(filtered);
-  }
-}, [groupId]);
+    const filtered = cluster.file_pairs.filter((pair) => pair.clone_type !== -1);
+    setGroupPairs(filtered);
+    setMembers(cluster.members);
+  }, [numericGroupId, resultData]);
 
   return (
-    <div className="p-6 flex flex-col gap-6 items-center">
-      <h1 className="text-2xl font-bold font-['Roboto']">Comparativa del Grupo {groupId}</h1>
-
-      {pairData.length === 0 ? (
-        <p className="text-muted-foreground">No hay comparativas con similitud significativa.</p>
-      ) : (
-        pairData.map((pair, index) => (
-          <Card key={index} className="w-full max-w-5xl border-black border-2 bg-white">
-            <CardContent className="p-4 flex flex-col gap-2">
-              <div className="flex justify-between text-sm font-bold">
-                <span>{pair.file1} (líneas {pair.lines1[0]}–{pair.lines1[1]})</span>
-                <span>Tipo {pair.clone_type}</span>
-                <span>{pair.file2} (líneas {pair.lines2[0]}–{pair.lines2[1]})</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <pre className="text-left text-sm p-2 bg-zinc-100 border rounded h-[200px] overflow-auto">
-                  {/* Aquí luego renderizas el fragmento real */}
-                  <code>Líneas {pair.lines1[0]} - {pair.lines1[1]} de {pair.file1}</code>
-                </pre>
-                <pre className="text-left text-sm p-2 bg-zinc-100 border rounded h-[200px] overflow-auto">
-                  <code>Líneas {pair.lines2[0]} - {pair.lines2[1]} de {pair.file2}</code>
-                </pre>
-              </div>
-            </CardContent>
+    <div className="flex flex-col gap-4 justify-center items-stretch w-full p-4 max-w-[1200px] mx-auto">
+      <button
+        onClick={() => navigate("/results")}
+        className="font-['Roboto'] text-[1rem] self-start  px-2 py-2 border border-black rounded bg-[#7EBDBD] hover:bg-[#65a0a0] font-medium">
+        ← Volver a Resultados
+      </button>
+      <h2 className="font-['Roboto'] text-[1.5rem] text-2xl font-bold">Comparativa del Grupo {groupId}</h2>
+      {groupPairs.length > 0 ? (
+        console.log("Group pairs:", groupPairs),
+        console.log("Members:", members),
+        groupPairs.map((pair, index) => (
+          <Card
+            key={index}
+            className="w-full max-w-6xl p-4 border-black border-2 bg-white"
+          >
+            <h3 className="font-semibold text-lg mb-4">
+              Par {index + 1} - Tipo {pair.clone_type}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left font-mono text-sm">
+              <CodeBlock
+                filename={pair.file1}
+                content={fileContents?.[normalizePath(pair.file1)] || ""}
+                highlightRanges={members?.[pair.file1] || []}
+              />
+              <CodeBlock
+                filename={pair.file2}
+                content={fileContents?.[normalizePath(pair.file2)] || ""}
+                highlightRanges={members?.[pair.file2] || []}
+              />
+            </div>
           </Card>
         ))
+      ) : (
+        <p className="text-muted-foreground">
+          No hay pares significativos para mostrar.
+        </p>
       )}
     </div>
   );

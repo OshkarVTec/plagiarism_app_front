@@ -10,23 +10,36 @@ import {
 
 const COLORS = ["#EF4444", "#F59E0B", "#10B981"]; // Rojo, Naranja, Verde
 
-export function CardFileGraphics({ data }: { data: any }) {
-  const cloneCounts: Record<string, number> = {};
+type ClusterRawData = Record<
+  string,
+  {
+    file_pairs: {
+      clone_type: number;
+    }[];
+  }
+>;
 
-  // Agrupar tipos de plagio, excluyendo los nulos
-  Object.values(data).forEach((cluster: any) => {
-    cluster.pairs.forEach((pair: any) => {
-      const type = pair.clone_type;
-      if (type !== "No Significant Similarity") {
-        const label = `Tipo ${type}`;
-        cloneCounts[label] = (cloneCounts[label] || 0) + 1;
+type Props = {
+  data: ClusterRawData;
+};
+
+export function CardFileGraphics({ data }: Props) {
+  const cloneTypeCounts: Record<number, number> = {};
+
+  // Aggregate clone_type counts, ignoring -1
+  Object.values(data).forEach((cluster) => {
+    cluster.file_pairs.forEach((pair) => {
+      const { clone_type } = pair;
+      if (clone_type !== -1) {
+        cloneTypeCounts[clone_type] = (cloneTypeCounts[clone_type] || 0) + 1;
       }
     });
   });
 
-  const chartData = Object.entries(cloneCounts).map(([name, value]) => ({
-    name,
-    value,
+  // Format data for the chart
+  const chartData = Object.entries(cloneTypeCounts).map(([type, count]) => ({
+    name: `Tipo ${type}`,
+    count,
   }));
 
   return (
@@ -40,7 +53,7 @@ export function CardFileGraphics({ data }: { data: any }) {
             <PieChart>
               <Pie
                  data={chartData}
-                dataKey="value"
+                dataKey="count"
                 nameKey="name"
                 cx="50%"
                 cy="50%"
@@ -51,7 +64,9 @@ export function CardFileGraphics({ data }: { data: any }) {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(value: number, name: string) =>
+                [`${value} ${value === 1 ? "Par" : "Pares"}`, name]}
+                />
               <Legend verticalAlign="bottom" height={5} />
             </PieChart>
           </ResponsiveContainer>

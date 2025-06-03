@@ -19,7 +19,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <NavigationMenuLink asChild
             data-active={location.pathname === "/Results"}>
               <Link to="/Results">
-                Results
+                Resultados
               </Link>
             </NavigationMenuLink>
           </NavigationMenuList>

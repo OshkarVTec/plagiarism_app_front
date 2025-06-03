@@ -13,8 +13,7 @@ export function CardFileGroup({ groupId, cloneType, fileCount, onView }: Props) 
       <h3 className="font-['Roboto'] font-bold text-lg">Grupo {groupId}</h3>
       <div className="font-['Roboto'] flex justify-between text-base font-medium">
         <span>
-          Tipo{cloneType.length > 1 ? "s" : ""} de plagio:{" "}
-          {cloneType.join(", ")}
+          Tipo{cloneType.length > 1 ? "s" : ""} de plagio: {cloneType.join(", ")}
         </span>
         <span>Archivos: {fileCount}</span>
       </div>

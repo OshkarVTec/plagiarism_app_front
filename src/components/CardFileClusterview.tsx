@@ -5,23 +5,19 @@ type ClusterRawData = any;
 
 function extractGroupsFromClusters(clustersData: Record<string, {
   members: Record<string, [number, number][]>;
-  pairs: {
+  file_pairs: {
     file1: string;
-    lines1: [number, number];
     file2: string;
-    lines2: [number, number];
-    clone_type: number | "No Significant Similarity";
-  }[];
-}>): { id: number; cloneType: number[]; files: string[] }[] {
+    clone_type: number;
+  }[];}>): { id: number; cloneType: number[]; files: string[] }[] {
   return Object.entries(clustersData)
     .map(([_, cluster], index) => {
       const files = Object.keys(cluster.members);
-
-     const cloneTypes = Array.from(
+      const cloneTypes = Array.from(
         new Set(
-          cluster.pairs
-            .filter((pair) => pair.clone_type !== "No Significant Similarity")
-            .map((pair) => pair.clone_type as number)
+          cluster.file_pairs
+            .filter((pair) => pair.clone_type !== -1)
+            .map((pair) => pair.clone_type)
         )
       );
 
